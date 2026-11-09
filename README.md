@@ -11,6 +11,8 @@ with every variable intact.
 ### [▶ Try it in your browser](https://andreaacanfora.github.io/spola/)
 
 [![CI](https://github.com/AndreaAcanfora/spola/actions/workflows/ci.yml/badge.svg)](https://github.com/AndreaAcanfora/spola/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/spola?logo=rust)](https://crates.io/crates/spola)
+[![docs.rs](https://img.shields.io/docsrs/spola)](https://docs.rs/spola)
 [![Rust](https://img.shields.io/badge/rust-2024-CE422B?logo=rust&logoColor=white)](Cargo.toml)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-success)](Cargo.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -55,7 +57,7 @@ touches the outside world it says `await`, and that is where it can be paused, s
 ## Try it
 
 ```bash
-cargo install --git https://github.com/AndreaAcanfora/spola
+cargo install spola
 
 spola run examples/countdown.sp --state countdown.state
 # press Ctrl-C halfway, then run the same command again: it continues from the same number
@@ -169,7 +171,8 @@ stop-and-resume against a real Redis.
 
 ## Embedding
 
-The VM is a library with no dependencies. The host loop is a `match`:
+The VM is a library with no dependencies (`cargo add spola`, [API docs](https://docs.rs/spola)). The host loop is
+a `match`:
 
 ```rust
 use spola::{compile, Data, Outcome, Vm};
