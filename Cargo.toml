@@ -1,0 +1,35 @@
+[package]
+name = "spola"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+description = "A small scripting language whose running programs can be checkpointed, moved and resumed anywhere"
+license = "MIT"
+repository = "https://github.com/AndreaAcanfora/spola"
+homepage = "https://andreaacanfora.github.io/spola/"
+readme = "README.md"
+keywords = ["language", "interpreter", "bytecode", "durable-execution", "webassembly"]
+categories = ["compilers", "development-tools", "wasm"]
+exclude = ["web/", "docs/", ".github/"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "spola"
+path = "src/bin/spola/main.rs"
+
+# No dependencies: lexer, parser, compiler, VM, garbage collector, checkpoint format, JSON and the Redis client
+# are all plain Rust.
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+# The checkpoint tests restore the VM at every instruction; keep them fast.
+[profile.test]
+opt-level = 2

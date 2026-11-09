@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spola playground</title>
+<meta name="description" content="Spola is a small scripting language whose running programs can be saved, killed and resumed exactly where they stopped. Try it in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M3 16c6-9 20-9 26 0-6 9-20 9-26 0z' fill='%23F0B429'/><path d='M0 16h32' stroke='%23172042' stroke-width='2'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Martian+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="shuttle" viewBox="0 0 64 24" aria-hidden="true"><path d="M2 12C14 1 50 1 62 12 50 23 14 23 2 12z"/><line x1="0" y1="12" x2="64" y2="12"/></svg>
+    <h1>Spola</h1>
+  </div>
+  <p class="pitch">A scripting language whose running programs can be saved, killed, and resumed exactly where they stopped.</p>
+  <nav class="links">
+    <label class="examples">Example
+      <select id="example"></select>
+    </label>
+    <a href="https://github.com/AndreaAcanfora/spola">GitHub</a>
+  </nav>
+</header>
+
+<main class="play">
+  <section class="editor-pane" aria-label="Program">
+    <div class="editor" id="editor">
+      <pre class="gutter" id="gutter" aria-hidden="true"></pre>
+      <div class="code-wrap">
+        <pre class="highlight" id="highlight" aria-hidden="true"></pre>
+        <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Program source"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <section class="side">
+    <div class="console-pane">
+      <h2>Output</h2>
+      <div class="console" id="console" aria-live="polite"></div>
+      <form class="ask" id="ask" hidden>
+        <label for="ask-input" id="ask-prompt"></label>
+        <div class="ask-row">
+          <input id="ask-input" autocomplete="off">
+          <button type="submit">Answer</button>
+        </div>
+      </form>
+    </div>
+    <div class="state-pane">
+      <h2>Variables</h2>
+      <div class="stack" id="stack"><p class="empty">Run the program to see its variables.</p></div>
+    </div>
+  </section>
+
+  <section class="controls" aria-label="Run controls">
+    <div class="buttons">
+      <button id="run" class="primary">Run</button>
+      <button id="step" title="Run one instruction">Step</button>
+      <label class="speed">Speed
+        <input id="speed" type="range" min="0" max="5" value="3" aria-describedby="speed-name">
+        <span id="speed-name"></span>
+      </label>
+      <span class="spacer"></span>
+      <button id="kill" class="kill" disabled>Kill the process</button>
+      <button id="restore" class="restore" disabled>Restore from checkpoint</button>
+    </div>
+    <div class="thread-wrap">
+      <svg id="thread" class="thread" role="slider" tabindex="0" aria-label="Time travel: drag to see the program at any earlier instruction" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"></svg>
+      <div class="thread-info">
+        <span id="where">Not started</span>
+        <button id="now" class="link" hidden>Back to the present</button>
+        <span class="spacer"></span>
+        <span id="ckpt"></span>
+        <button id="download" class="link" disabled>Download checkpoint</button>
+        <label class="link file">Open checkpoint<input id="open" type="file" accept=".state,application/octet-stream"></label>
+      </div>
+    </div>
+  </section>
+
+  <details class="bytecode-pane">
+    <summary>Bytecode</summary>
+    <div class="bytecode" id="bytecode"></div>
+  </details>
+</main>
+
+<footer class="foot">
+  <p>Every <code>await</code> stops the virtual machine and saves its whole state: stack, heap, call frames. Kill the process while it sleeps or waits for you, then restore it: it continues from that exact line. Drag the thread to travel back in time. A downloaded checkpoint resumes in your terminal with <code>spola resume program.state</code>.</p>
+  <p>Effects here: <code>sleep</code>, <code>ask</code>, <code>now</code>, <code>random</code>. The <a href="https://github.com/AndreaAcanfora/spola#the-spola-command">command line</a> adds files, shell commands and Redis-compatible checkpoint storage.</p>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

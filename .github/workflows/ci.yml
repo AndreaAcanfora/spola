@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch: # run (and deploy) by hand from the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+      - name: Kill a running program and resume it
+        run: |
+          cargo build --release
+          spola=target/release/spola
+          $spola run examples/countdown.sp --state countdown.state & pid=$!
+          sleep 3.5 && kill -9 $pid || true
+          $spola inspect countdown.state
+          $spola run examples/countdown.sp --state countdown.state | tee resumed.txt
+          grep -q "liftoff after" resumed.txt
+          ! grep -q "T-10" resumed.txt # the first numbers were not counted again
+      - name: Stop on one run, resume from Redis on the next
+        run: |
+          spola=target/release/spola
+          code=0; $spola run examples/approval.sp --state redis://127.0.0.1:6379/ci:approval --detach || code=$?
+          test $code -eq 3
+          $spola resume redis://127.0.0.1:6379/ci:approval --with yes | tee approved.txt
+          grep -q "deploy v1.4.2" approved.txt
+      - name: Build the playground
+        run: scripts/build-web.sh
+      - name: The WebAssembly module needs nothing from the browser
+        run: |
+          node -e "
+            const m = new WebAssembly.Module(require('fs').readFileSync('web/spola.wasm'));
+            const imports = WebAssembly.Module.imports(m);
+            if (imports.length) { console.error('unexpected imports', imports); process.exit(1); }
+            console.log('exports:', WebAssembly.Module.exports(m).map(e => e.name).join(', '));
+          "
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: web
+
+  deploy:
+    # Publishes the playground to GitHub Pages from the default branch.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: web
+          path: web
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4
